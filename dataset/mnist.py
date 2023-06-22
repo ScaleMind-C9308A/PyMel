@@ -18,8 +18,11 @@ class MamlMnist(MNIST):
         
         self.ks = k_shot
         self.kq = k_query
-        self.nt = n_train_cls        
+        self.nt = n_train_cls     
         
+        self.__setup__()   
+    
+    def __setup__(self):
         self.dict_ds = {
             _cls : [] for _cls in list(self.class_to_idx.values())
         }        
