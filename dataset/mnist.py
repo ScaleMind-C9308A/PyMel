@@ -3,6 +3,8 @@ import torch
 from typing import Callable, Optional, Any, Tuple
 from torchvision.datasets import MNIST
 import random
+import numpy as np
+from torch.utils.data import DataLoader
 
 class MamlMnist(MNIST):
     def __init__(self, 
@@ -97,14 +99,28 @@ class MamlMnist(MNIST):
             self.target_transform(x) if self.target_transform is not None else x for x in query_y
         ]
         
-        return support_x, torch.LongTensor(support_y), query_x, torch.LongTensor(query_y)
+        return torch.stack(support_x), torch.LongTensor(support_y), torch.stack(query_x), torch.LongTensor(query_y)
 
 if __name__ == "__main__":
     ds = MamlMnist(train=False, download=True)
     
     print(f"len dataset: {len(ds)}, sample per class: {ds.sample_cls_cnt}")    
     
-    for x in range(len(ds)):
-        sample_s_x, sample_s_y, sample_q_x, sample_q_y = ds[x]
+    # for x in range(len(ds)):
+    #     sample_s_x, sample_s_y, sample_q_x, sample_q_y = ds[x]
         
-        print(len(sample_s_x), len(sample_s_y), len(sample_q_x), len(sample_q_y))        
+    #     print(len(sample_s_x), len(sample_s_y), len(sample_q_x), len(sample_q_y))     
+    
+    # Check compatibility with DataLoader
+    dl = DataLoader(
+        dataset=ds,
+        batch_size=8,
+        shuffle=True,
+        pin_memory=True,
+        num_workers=4
+    )  
+    
+    print(f"Len Data Loader: {len(dl)}")
+    
+    for idx, (sample_s_x, sample_s_y, sample_q_x, sample_q_y) in enumerate(dl):
+        print(sample_s_x.shape, sample_s_y.shape, sample_q_x.shape, sample_q_y.shape)
