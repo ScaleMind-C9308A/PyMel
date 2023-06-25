@@ -1,7 +1,7 @@
 import os, sys
 sys.path.append("/".join(os.path.dirname(__file__).split("/")[:-1]))
 import torch
-from typing import Callable, Optional, Any, Tuple
+from typing import *
 from torchvision.datasets import MNIST
 import random
 from torch.utils.data import DataLoader
@@ -14,7 +14,8 @@ class MamlMnistV1(MNIST, SIN_PROC_MAML_DATASET):
                  transform: Callable[..., Any] = None, 
                  target_transform: Callable[..., Any] = None, 
                  download: bool = False,
-                 k_shot: int = 5, k_query: int = 5,
+                 k_shot: int = 5, 
+                 k_query: int = 5,
                  n_train_cls:int = -1,
                  merge_task:bool = True
                  ) -> None:
@@ -53,7 +54,7 @@ class MamlMnistV1(MNIST, SIN_PROC_MAML_DATASET):
     def __len__(self) -> int:
         return self.sample_cls_cnt // (self.ks + self.kq) - 1
     
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> Tuple[Dict[List[torch.Tensor]]] or Tuple[torch.Tensor]:
         
         if index >= len(self):
             raise ValueError("Data set index of out range")

@@ -14,7 +14,8 @@ class MamlMnistV2(MNIST, MUL_PROC_MAML_DATASET):
                  transform: Callable[..., Any] = None, 
                  target_transform: Callable[..., Any] = None, 
                  download: bool = False,
-                 k_shot: int = 5, k_query: int = 5,
+                 k_shot: int = 5, 
+                 k_query: int = 5,
                  n_train_cls:int = -1,
                  merge_task:bool = True                             
                  ) -> None:
@@ -60,7 +61,9 @@ class MamlMnistV2(MNIST, MUL_PROC_MAML_DATASET):
             index = len(self) - 1      
         
         selected_dict = {
-            _cls : self.dict_ds[_cls][index] for _cls in range(self.nt)
+            _cls : self.transform(
+                self.dict_ds[_cls][index]
+            ) if self.transform is not None else self.dict_ds[_cls][index] for _cls in range(self.nt)
         }
         
         return selected_dict
