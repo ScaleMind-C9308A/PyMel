@@ -4,11 +4,11 @@ import torch
 import random
 
 def detach(
-    batch_dict: Dict[List[torch.Tensor]] = None, 
+    batch_dict: Dict[int, List[torch.Tensor]] = None, 
     k_shot:int = None, 
     k_query:int = None
-    ) -> Tuple[Dict[List[torch.Tensor]]]:
-    sample_len = len(batch_dict[batch_dict.keys()[0]])
+    ) -> Tuple[Dict[int, List[torch.Tensor]]]:
+    sample_len = len(batch_dict[list(batch_dict.keys())[0]])
     
     if k_shot + k_query > sample_len:
         raise ValueError(f"Many data to unpack. Since #sample in support set: k_shot and #sample \
@@ -30,7 +30,7 @@ def detach(
     return (support_dct, query_dct)
 
 def maml_detach(
-    batch_dict: Dict[List[torch.Tensor]] = None, 
+    batch_dict: Dict[int, List[torch.Tensor]] = None, 
     k_shot:int = None, 
     k_query:int = None,
     task:int = None
@@ -51,20 +51,22 @@ def maml_detach(
     
     support_x, support_y, query_x, query_y = [], [], [], []
     for _task in tasks:
+        support_x.extend(support_dct[_task])
+        query_x.extend(query_dct[_task])
         if _task == task:
             support_y.extend([1]*k_shot)
             query_y.extend([1]*k_query)
+        else:
+            support_y.extend([0]*k_shot)
+            query_y.extend([0]*k_query)
             
-            support_x.extend(support_dct[task])
-            query_x.extend(query_dct[task])
-            
-    shuf_sp_lst, shuf_qr_lst = range(len(support_x)), range(len(query_x))
+    shuf_sp_lst, shuf_qr_lst = list(range(len(support_x))), list(range(len(query_x)))
     random.shuffle(shuf_sp_lst)
     random.shuffle(shuf_qr_lst)
     
     support_x = torch.stack(support_x)[torch.tensor(shuf_sp_lst)]
-    support_y = torch.LongTensor(support_y)[torch.tensor(shuf_sp_lst)]
+    support_y = torch.FloatTensor(support_y)[torch.tensor(shuf_sp_lst)]
     query_x = torch.stack(query_x)[torch.tensor(shuf_qr_lst)]
-    query_y = torch.LongTensor(query_y)[torch.tensor(shuf_qr_lst)]
+    query_y = torch.FloatTensor(query_y)[torch.tensor(shuf_qr_lst)]
     
     return (support_x, support_y, query_x, query_y)

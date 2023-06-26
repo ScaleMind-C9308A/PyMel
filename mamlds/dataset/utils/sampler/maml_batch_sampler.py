@@ -3,13 +3,12 @@ from typing import Iterator
 sys.path.append("/".join(os.path.dirname(__file__).split("/")[:-1]))
 sys.path.append("/".join(os.path.dirname(__file__).split("/")[:-2]))
 from typing import *
-from dataset import MamlMnistV1
 
 from torch.utils.data.sampler import Sampler
 
 class MamlBatchSampler(Sampler[List[int]]):
     def __init__(self, sampler: Union[Sampler[int], Iterable[int]], 
-                 data_source: MamlMnistV1 = None) -> None:
+                 data_source = None) -> None:
         super().__init__(data_source)
         
         self.sampler = sampler
