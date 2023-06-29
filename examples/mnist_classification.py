@@ -10,8 +10,8 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
-from mamlds import MamlMnistV2
-from mamlds.dataset.utils import maml_detach
+from pymel import MamlMnist
+from pymel.dataset.utils import maml_detach
 
 def main(args: argparse):
     
@@ -24,7 +24,7 @@ def main(args: argparse):
         transforms.Normalize((0.1307,), (0.3081,))
     ])
     
-    train_ds = MamlMnistV2(
+    train_ds = MamlMnist(
         root="~/data",
         train = True,
         transform=transform,
@@ -33,7 +33,7 @@ def main(args: argparse):
         k_query=args.kq
     )
     
-    test_ds = MamlMnistV2(
+    test_ds = MamlMnist(
         root="~/data",
         train = False,
         transform=transform,
@@ -45,7 +45,8 @@ def main(args: argparse):
         dataset=train_ds,
         batch_size=args.ks + args.kq,
         num_workers=args.wk, 
-        pin_memory=True
+        pin_memory=True,
+        shuffle=True
     )
     
     test_dl = DataLoader(
@@ -68,7 +69,8 @@ def main(args: argparse):
     
     meta_optimizer = Adam(global_model.parameters(), lr=args.out_lr, weight_decay=1e-4)
     
-    criterion = nn.BCELoss()
+    meta_criterion = nn.BCELoss()
+    clf_criterion = nn.CrossEntropyLoss()
     
     for epoch in range(args.epochs):
         global_model.train()
@@ -94,14 +96,14 @@ def main(args: argparse):
                 
                 sp_x, sp_y = sp_x.to(device), sp_y.to(device)
                 sp_logits = model(sp_x)
-                sp_loss = criterion(sp_logits[:, task], sp_y)
+                sp_loss = meta_criterion(sp_logits[:, task], sp_y)
                 sp_optimizer.zero_grad()
                 sp_loss.backward()
                 sp_optimizer.step()
                 
                 qr_x, qr_y = qr_x.to(device), qr_y.to(device)
                 qr_logits = model(qr_x)
-                qr_loss = criterion(qr_logits[:, task], qr_y)
+                qr_loss = meta_criterion(qr_logits[:, task], qr_y)
                 metaloss += qr_loss
             
             meta_optimizer.zero_grad()
@@ -124,14 +126,13 @@ def main(args: argparse):
                 test_labels = test_labels.to(device, non_blocking=True)
                 test_logits = model(test_imgs)                
             
-                test_loss += criterion(test_logits, test_labels).item()
+                test_loss += clf_criterion(test_logits, test_labels).item()
                 _, predicted = test_logits.max(1)
                 total += test_labels.size(0)
                 correct += predicted.eq(test_labels).sum().item()
                 
         print(f"Epoch: {epoch} - MetaLoss: {metaloss.item()/train_ds.nt} - \
             Test Loss: {test_loss/batch_count} - Test Acc: {100*correct/total}%")   
-            
         
 
 if __name__ == "__main__":
