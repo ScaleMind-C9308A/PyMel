@@ -6,9 +6,9 @@ from torchvision.datasets import MNIST
 from PIL import Image
 import random
 from torch.utils.data import DataLoader
-from core import MUL_PROC_MAML_DATASET
+from .core import MUL_PROC_MAML_DATASET
 
-class MamlMnistV2(MNIST, MUL_PROC_MAML_DATASET):
+class MamlMnist(MNIST, MUL_PROC_MAML_DATASET):
     def __init__(self, 
                  root: str = "~/data", 
                  train: bool = True, 
@@ -77,11 +77,11 @@ class MamlMnistV2(MNIST, MUL_PROC_MAML_DATASET):
             
             return selected_dict
         else:
-            return super().__getitem__()
+            return super().__getitem__(index=index)
 
 if __name__ == "__main__":
     from torchvision import transforms
-    ds = MamlMnistV2(train=True, download=True, transform=transforms.ToTensor(),)
+    ds = MamlMnist(train=True, download=True, transform=transforms.ToTensor(),)
     
     print(ds.dict_ds.keys())
     
