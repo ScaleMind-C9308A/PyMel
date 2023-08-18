@@ -9,7 +9,7 @@ class TrainConfig:
                  checkpoint: bool = True,
                  logging: bool = True,
                  save_dir: str = None,
-                 method: str = None,
+                #  method: str = None,
                  ) -> None:
         
         if model is None:
@@ -27,13 +27,13 @@ class TrainConfig:
         self.cp = checkpoint
         self.lg = logging
         
-        if method is None:
-            raise ValueError("method cannot be None")
-        elif not isinstance(method, str):
-            raise TypeError(f"method must be a string, \
-                but found {type(method)} instead")
-        else:
-            self.method = method
+        # if method is None:
+        #     raise ValueError("method cannot be None")
+        # elif not isinstance(method, str):
+        #     raise TypeError(f"method must be a string, \
+        #         but found {type(method)} instead")
+        # else:
+        #     self.method = method
             
         
         if self.cp or self.lg:
