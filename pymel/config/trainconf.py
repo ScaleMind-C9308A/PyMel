@@ -10,6 +10,9 @@ class TrainConfig:
                  logging: bool = True,
                  save_dir: str = None,
                 #  method: str = None,
+                 save_best: bool = True,
+                 extension:str = "pt",
+                 save_last: bool = False
                  ) -> None:
         
         if model is None:
@@ -55,6 +58,12 @@ class TrainConfig:
                         os.mkdir(self.sv_dir)
                     self.__folder_setup()
         
+        if self.cp:
+            self.sv_best = save_best
+            self.sv_last = save_last
+            self.ext = extension
+            
+        
     def __folder_setup(self):
         self.method_dir = self.sv_dir + f"/{self.method}"
         if not os.path.exists(self.method_dir):
@@ -64,3 +73,23 @@ class TrainConfig:
         self.exp_dir = self.method_dir + f"/ext{len(sub_dirs)}"
         if not os.path.exists(self.exp_dir):
             os.mkdir(self.exp_dir)
+    
+    @staticmethod
+    def checkpoint(self):
+        return self.cp
+    
+    @staticmethod
+    def get_sv_best(self):
+        return self.sv_best
+    
+    @staticmethod
+    def get_sv_last(self):
+        return self.sv_last
+    
+    @staticmethod
+    def get_ext(self):
+        return self.ext
+    
+    @staticmethod
+    def get_sv_dir(self):
+        return self.sv_dir
