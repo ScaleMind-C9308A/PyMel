@@ -72,3 +72,14 @@ class TrainConfig:
     @staticmethod
     def get_sv_dir(self):
         return self.sv_dir
+
+    @staticmethod
+    def config_export(self):
+        return {
+            "checkpoint" : self.cp,
+            "logging" : self.lg,
+            "save_dir" : self.sv_dir,
+            "save_best" : self.sv_best,
+            "save_last" : self.sv_last,
+            "extension" : self.ext
+        }
