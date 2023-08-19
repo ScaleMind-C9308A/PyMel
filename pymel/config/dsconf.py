@@ -78,6 +78,26 @@ class DSConfig:
             num_workers = self.wk, 
             pin_memory = True
         )
+        
+        self.config = {
+            "dataset" : self.ds_name,
+            "data_root_dir" : root,
+            "download" : download,
+            "transform" : [
+                x.__class__.__name__ for x in transform.transforms
+            ],
+            "target_transofrm" : [
+                x.__class__.__name__ for x in target_transform.transforms
+            ],
+            "k_shot" : k_shot,
+            "k_query" : k_query,
+            "n_way" : n_train_cls,
+            "num_worker" : num_worker,
+            "pin_memory" : pin_memory
+        }
+    
+    def config_export(self):
+        return self.config
 
 if __name__ == "__main__":
     config = DSConfig(
