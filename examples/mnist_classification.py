@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from pymel import MamlMnist
-from pymel.dataset.utils import maml_detach
+from pymel.dataset.utils import single_task_detach
 
 def main(args: argparse):
     
@@ -69,8 +69,7 @@ def main(args: argparse):
     
     meta_optimizer = Adam(global_model.parameters(), lr=args.out_lr, weight_decay=1e-4)
     
-    meta_criterion = nn.BCELoss()
-    clf_criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss()
     
     num_task = train_ds.nt
     for epoch in range(args.epochs):
@@ -86,7 +85,7 @@ def main(args: argparse):
                 
                 sp_optimizer = Adam(model.parameters(), lr=args.in_lr, weight_decay=1e-4)
                 
-                sp_x, sp_y, qr_x, qr_y = maml_detach(
+                sp_x, sp_y, qr_x, qr_y = single_task_detach(
                     batch_dict=data_dict,
                     k_shot=args.ks,
                     k_query=args.kq,
@@ -95,14 +94,14 @@ def main(args: argparse):
                 
                 sp_x, sp_y = sp_x.to(device), sp_y.to(device)
                 sp_logits = model(sp_x)
-                sp_loss = meta_criterion(sp_logits[:, task], sp_y)
+                sp_loss = criterion(sp_logits, sp_y)
                 sp_optimizer.zero_grad()
                 sp_loss.backward()
                 sp_optimizer.step()
                 
                 qr_x, qr_y = qr_x.to(device), qr_y.to(device)
                 qr_logits = model(qr_x)
-                qr_loss = meta_criterion(qr_logits[:, task], qr_y)
+                qr_loss = criterion(qr_logits, qr_y)
                 metaloss += qr_loss
             
             meta_optimizer.zero_grad()
@@ -125,7 +124,7 @@ def main(args: argparse):
                 test_labels = test_labels.to(device, non_blocking=True)
                 test_logits = model(test_imgs)                
             
-                test_loss += clf_criterion(test_logits, test_labels).item()
+                test_loss += criterion(test_logits, test_labels).item()
                 _, predicted = test_logits.max(1)
                 total += test_labels.size(0)
                 correct += predicted.eq(test_labels).sum().item()
@@ -152,6 +151,8 @@ if __name__ == "__main__":
     parser.add_argument("--c", type=int, default=1,
                         help="#number of imput channel")
     parser.add_argument("--epochs", type=int, default=1,
+                        help="#number of epochs")
+    parser.add_argument("--inner_epochs", type=int, default=1,
                         help="#number of epochs")
     parser.add_argument("--dv", type=int, default=0,
                         help="Index of GPU")
