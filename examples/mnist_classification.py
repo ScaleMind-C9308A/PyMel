@@ -12,6 +12,7 @@ from torchvision import transforms
 
 from pymel import MamlMnist
 from pymel.dataset.utils import single_task_detach
+from pymel.base_model import CNN_Mnist
 
 def main(args: argparse):
     
@@ -56,16 +57,7 @@ def main(args: argparse):
         pin_memory=True
     )
     
-    global_model = nn.Sequential(
-        nn.Conv2d(args.c, 10, kernel_size=5),
-        nn.MaxPool2d(kernel_size=2),
-        nn.Conv2d(10, 20, kernel_size=5),
-        nn.Dropout2d(),
-        nn.MaxPool2d(kernel_size=2),
-        nn.Flatten(),
-        nn.Linear(320, len(train_ds.class_to_idx)),
-        nn.Sigmoid()
-    ).to(device=device)
+    global_model = CNN_Mnist(input_size=(1, 28, 28), num_classes=10).to(device=device)
     
     meta_optimizer = Adam(global_model.parameters(), lr=args.out_lr, weight_decay=1e-4)
     
