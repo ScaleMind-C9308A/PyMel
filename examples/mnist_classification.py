@@ -129,8 +129,7 @@ def main(args: argparse):
                 total += test_labels.size(0)
                 correct += predicted.eq(test_labels).sum().item()
                 
-        print(f"Epoch: {epoch} - MetaLoss: {metaloss.item()/train_ds.nt} - \
-            Test Loss: {test_loss/batch_count} - Test Acc: {100*correct/total}%")   
+        print(f"Epoch: {epoch} - MetaLoss: {metaloss.item()/train_ds.nt} - Test Loss: {test_loss/batch_count} - Test Acc: {100*correct/total}%")   
         
 
 if __name__ == "__main__":
