@@ -60,13 +60,44 @@ def maml_detach(
             support_y.extend([0]*k_shot)
             query_y.extend([0]*k_query)
             
-    shuf_sp_lst, shuf_qr_lst = list(range(len(support_x))), list(range(len(query_x)))
-    random.shuffle(shuf_sp_lst)
-    random.shuffle(shuf_qr_lst)
+    # shuf_sp_lst, shuf_qr_lst = list(range(len(support_x))), list(range(len(query_x)))
+    # random.shuffle(shuf_sp_lst)
+    # random.shuffle(shuf_qr_lst)
     
-    support_x = torch.stack(support_x)[torch.tensor(shuf_sp_lst)]
-    support_y = torch.FloatTensor(support_y)[torch.tensor(shuf_sp_lst)]
-    query_x = torch.stack(query_x)[torch.tensor(shuf_qr_lst)]
-    query_y = torch.FloatTensor(query_y)[torch.tensor(shuf_qr_lst)]
+    # support_x = torch.stack(support_x)[torch.tensor(shuf_sp_lst)]
+    # support_y = torch.FloatTensor(support_y)[torch.tensor(shuf_sp_lst)]
+    # query_x = torch.stack(query_x)[torch.tensor(shuf_qr_lst)]
+    # query_y = torch.FloatTensor(query_y)[torch.tensor(shuf_qr_lst)]
+    
+    support_x = torch.stack(support_x)
+    support_y = torch.LongTensor(support_y)
+    query_x = torch.stack(query_x)
+    query_y = torch.LongTensor(query_y)
     
     return (support_x, support_y, query_x, query_y)
+
+# def single_task_detach(
+#     batch_dict: Dict[int, List[torch.Tensor]] = None, 
+#     k_shot:int = None, 
+#     k_query:int = None
+#     ):
+    
+#     support_dct, query_dct = detach(
+#         batch_dict=batch_dict,
+#         k_shot=k_shot,
+#         k_query=k_query
+#     )
+    
+#     tasks = list(batch_dict.keys())
+    
+#     support_x, support_y, query_x, query_y = [], [], [], []
+    
+#     for _task in tasks:
+#         support_x.extend(support_dct[_task])
+#         query_x.extend(query_dct[_task])
+#         if _task == task:
+#             support_y.extend([1]*k_shot)
+#             query_y.extend([1]*k_query)
+#         else:
+#             support_y.extend([0]*k_shot)
+#             query_y.extend([0]*k_query)
