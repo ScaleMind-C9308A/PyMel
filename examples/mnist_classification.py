@@ -101,7 +101,7 @@ def main(args: argparse):
                 metaloss/num_task, list(global_model.parameters()), allow_unused=True
             )
             for w,g in zip(list(global_model.parameters()), metagrads):
-                w.grad=g 
+                w.grad=torch.clamp(g, min=-10, max=10) 
             meta_optimizer.step()
         
         global_model.eval()
