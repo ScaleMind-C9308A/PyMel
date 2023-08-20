@@ -70,9 +70,9 @@ def maml_detach(
     # query_y = torch.FloatTensor(query_y)[torch.tensor(shuf_qr_lst)]
     
     support_x = torch.stack(support_x)
-    support_y = torch.LongTensor(support_y)
+    support_y = torch.FloatTensor(support_y)
     query_x = torch.stack(query_x)
-    query_y = torch.LongTensor(query_y)
+    query_y = torch.FloatTensor(query_y)
     
     return (support_x, support_y, query_x, query_y)
 
