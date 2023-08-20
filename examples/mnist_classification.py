@@ -72,6 +72,7 @@ def main(args: argparse):
     meta_criterion = nn.BCELoss()
     clf_criterion = nn.CrossEntropyLoss()
     
+    num_task = train_ds.nt
     for epoch in range(args.epochs):
         global_model.train()
         
@@ -79,9 +80,7 @@ def main(args: argparse):
             
             metaloss = 0.0
             
-            tasks = random.sample(list(data_dict.keys()), k=args.num_task_in)
-            
-            for task in tasks:
+            for task in data_dict:
                 model=copy.deepcopy(global_model)
                 model.train()
                 
@@ -108,7 +107,7 @@ def main(args: argparse):
             
             meta_optimizer.zero_grad()
             metagrads=torch.autograd.grad(
-                metaloss, list(global_model.parameters()), allow_unused=True
+                metaloss/num_task, list(global_model.parameters()), allow_unused=True
             )
             for w,g in zip(list(global_model.parameters()), metagrads):
                 w.grad=g 
@@ -140,22 +139,20 @@ if __name__ == "__main__":
         prog="MINST MULTI TASK CLASSIFICATION"
     )
     
-    parser.add_argument("--in_lr", type=float, default=0.01,
+    parser.add_argument("--in_lr", type=float, default=0.1,
                         help="Inner learning Rate")
     parser.add_argument("--out_lr", type=float, default=0.001,
                         help="Outer learning Rate")
     parser.add_argument("--ks", type=int, default=5,
                         help="#sample in support set")
-    parser.add_argument("--kq", type=int, default=5,
+    parser.add_argument("--kq", type=int, default=32,
                         help="#sample in query set")
-    parser.add_argument("--wk", type=int, default=4,
+    parser.add_argument("--wk", type=int, default=os.cpu_count(),
                         help="#number of workers")
     parser.add_argument("--c", type=int, default=1,
                         help="#number of imput channel")
     parser.add_argument("--epochs", type=int, default=1,
                         help="#number of epochs")
-    parser.add_argument("--num_task_in", type=int, default=10,
-                        help="Number of tasks taking part in training for each epoch")
     parser.add_argument("--dv", type=int, default=0,
                         help="Index of GPU")
     
