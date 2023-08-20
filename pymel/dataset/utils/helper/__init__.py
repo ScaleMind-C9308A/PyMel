@@ -1,1 +1,1 @@
-from .detach import detach, maml_detach
+from .detach import detach, maml_detach, single_task_detach

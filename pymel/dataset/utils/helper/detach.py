@@ -76,28 +76,34 @@ def maml_detach(
     
     return (support_x, support_y, query_x, query_y)
 
-# def single_task_detach(
-#     batch_dict: Dict[int, List[torch.Tensor]] = None, 
-#     k_shot:int = None, 
-#     k_query:int = None
-#     ):
+def single_task_detach(
+    batch_dict: Dict[int, List[torch.Tensor]] = None, 
+    k_shot:int = None, 
+    k_query:int = None,
+    task:int = None
+    ):
     
-#     support_dct, query_dct = detach(
-#         batch_dict=batch_dict,
-#         k_shot=k_shot,
-#         k_query=k_query
-#     )
+    support_dct, query_dct = detach(
+        batch_dict=batch_dict,
+        k_shot=k_shot,
+        k_query=k_query
+    )
     
-#     tasks = list(batch_dict.keys())
+    if not isinstance(task, int):
+        raise ValueError(f"task arg must be integer type but found {type(task)} instead")
+    elif task not in batch_dict.keys():
+        raise Exception(f"Found no task {task} in batch dict")
     
-#     support_x, support_y, query_x, query_y = [], [], [], []
+    support_x, support_y, query_x, query_y = [], [], [], []
     
-#     for _task in tasks:
-#         support_x.extend(support_dct[_task])
-#         query_x.extend(query_dct[_task])
-#         if _task == task:
-#             support_y.extend([1]*k_shot)
-#             query_y.extend([1]*k_query)
-#         else:
-#             support_y.extend([0]*k_shot)
-#             query_y.extend([0]*k_query)
+    support_x.extend(support_dct[task])
+    support_y.extend([task]*len(support_dct[task]))
+    query_x.extend(query_dct[task])
+    query_y.extend([task]*len(query_dct[task]))
+    
+    support_x = torch.stack(support_x)
+    support_y = torch.FloatTensor(support_y)
+    query_x = torch.stack(query_x)
+    query_y = torch.FloatTensor(query_y)
+    
+    return (support_x, support_y, query_x, query_y)
