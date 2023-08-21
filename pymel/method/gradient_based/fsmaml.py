@@ -86,7 +86,7 @@ class FSMAML(Trainer):
         
         args.ngpus = torch.cuda.device_count()
         args.rank = 0
-        args.dist_url = f'tcp://localhost:{args.port}'
+        args.dist_url = f'tcp://localhost:{port}'
         print(f"PyMel GPT: The experiment is deployed at {args.dist_url}")
         args.world_size = args.ngpus
         
