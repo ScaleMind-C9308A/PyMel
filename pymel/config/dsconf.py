@@ -70,10 +70,10 @@ class DSConfig:
             "download" : download,
             "transform" : [
                 x.__class__.__name__ for x in transform.transforms 
-            ] if transform.transforms is None else None,
+            ] if transform.transforms is not None else None,
             "target_transofrm" : [
                 x.__class__.__name__ for x in target_transform.transforms 
-            ] if target_transform.transforms is None else None,
+            ] if target_transform.transforms is not None else None,
             "k_shot" : k_shot,
             "k_query" : k_query,
             "n_way" : n_train_cls,
