@@ -126,7 +126,7 @@ class FSMAML(Trainer):
                         task=task
                     )
                     
-                    for in_e in range(self.inner_epochs):
+                    for in_e in range(self.inner_epoch):
                         sp_x, sp_y = sp_x.to(device), sp_y.to(device)
                         sp_logits = task_model(sp_x)
                         sp_loss = self.crit(sp_logits, sp_y)
