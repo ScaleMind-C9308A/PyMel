@@ -83,21 +83,25 @@ class FSMAML(Trainer):
     def train(self, port=randint(1000, 8000)):
         parser = argparse.ArgumentParser()
         args = parser.parse_args()
-        
-        args.ngpus = torch.cuda.device_count()
+            
         args.rank = 0
+        args.port = port
         args.dist_url = f'tcp://localhost:{port}'
         print(f"PyMel GPT: The experiment is deployed at {args.dist_url}")
-        args.world_size = args.ngpus
         
-        mp.spawn(self.main_worker, (args,), args.ngpus)
+        args.world_size = torch.cuda.device_count()
+        
+        mp.spawn(self.main_worker, (args,), nprocs = args.world_size)
         
     def main_worker(self, gpu, args):
         print("get here")
         args.rank += gpu
-    
+
+        os.environ["MASTER_ADDR"] = "localhost"
+        os.environ["MASTER_PORT"] = str(args.port)
         dist.init_process_group(
-            backend='nccl', init_method=args.dist_url,
+            backend='nccl', 
+            # init_method=args.dist_url,
             world_size=args.world_size, rank=args.rank)
         
         torch.cuda.set_device(gpu)
@@ -108,6 +112,7 @@ class FSMAML(Trainer):
         assert batch_size % args.world_size == 0
         
         train_sampler = DistributedSampler(self.ds_cfg.train_ds)
+        test_sampler = DistributedSampler(self.ds_cfg.test_ds)
         
         per_device_batch_size = batch_size // args.world_size
         per_device_k_shot = self.ds_cfg.get_k_shot() // args.world_size
@@ -125,7 +130,8 @@ class FSMAML(Trainer):
             dataset=self.ds_cfg.test_ds,
             batch_size=1,
             num_workers=self.ds_cfg.get_wk(), 
-            pin_memory=self.ds_cfg.get_pin_mem()
+            pin_memory=self.ds_cfg.get_pin_mem(),
+            sampler=test_sampler
         )
         print("Data Loader Setup: Done")
         
@@ -143,6 +149,7 @@ class FSMAML(Trainer):
         
         num_task = self.ds_cfg.train_ds.nt
         for epoch in range(self.outer_epoch):
+            train_sampler.set_epoch(epoch)
             global_model.train()
             
             for train_idx, data_dict in enumerate(train_dl):
@@ -185,6 +192,7 @@ class FSMAML(Trainer):
                 meta_optimizer.step()
                 meta_optimizer.zero_grad()
             if args.rank == 0:
+                test_sampler.set_epoch(epoch)
                 global_model.eval()
                 with torch.no_grad():
                     test_loss = 0
