@@ -58,11 +58,11 @@ def main(args: argparse):
     )
     
     global_model = CNN_Mnist(input_size=(1, 28, 28), num_classes=10).to(device=device)
-    
+
     meta_optimizer = Adam(global_model.parameters(), lr=args.out_lr, weight_decay=1e-4)
-    
+
     criterion = nn.CrossEntropyLoss()
-    
+
     num_task = train_ds.nt
     for epoch in range(args.epochs):
         global_model.train()
@@ -70,12 +70,11 @@ def main(args: argparse):
         for train_idx, data_dict in enumerate(train_dl):
             
             metaloss = 0.0
-            
             for task in data_dict:
-                model=copy.deepcopy(global_model)
-                model.train()
-                
-                sp_optimizer = Adam(model.parameters(), lr=args.in_lr, weight_decay=1e-4)
+                # task_model = global_model.clone()
+                task_model = CNN_Mnist(input_size=(1, 28, 28), num_classes=10).to(device=device)
+                task_model.load_state_dict(global_model.state_dict())
+                task_optimizer = Adam(task_model.parameters(), lr=args.in_lr, weight_decay=1e-4)
                 
                 sp_x, sp_y, qr_x, qr_y = single_task_detach(
                     batch_dict=data_dict,
@@ -84,25 +83,28 @@ def main(args: argparse):
                     task=task
                 )
                 
-                sp_x, sp_y = sp_x.to(device), sp_y.to(device)
-                sp_logits = model(sp_x)
-                sp_loss = criterion(sp_logits, sp_y)
-                sp_optimizer.zero_grad()
-                sp_loss.backward()
-                sp_optimizer.step()
+                for in_e in range(args.inner_epochs):
+                    sp_x, sp_y = sp_x.to(device), sp_y.to(device)
+                    sp_logits = task_model(sp_x)
+                    sp_loss = criterion(sp_logits, sp_y)
+                    task_optimizer.zero_grad()
+                    sp_loss.backward()
+                    task_optimizer.step()
                 
                 qr_x, qr_y = qr_x.to(device), qr_y.to(device)
-                qr_logits = model(qr_x)
+                qr_logits = task_model(qr_x)
                 qr_loss = criterion(qr_logits, qr_y)
-                metaloss += qr_loss
-            
-            meta_optimizer.zero_grad()
-            metagrads=torch.autograd.grad(
-                metaloss/num_task, list(global_model.parameters()), allow_unused=True
-            )
-            for w,g in zip(list(global_model.parameters()), metagrads):
-                w.grad=torch.clamp(g, min=-10, max=10) if g is not None else g
+                metaloss += qr_loss.item()
+                qr_loss.backward()            
+
+                for w_global, w_local in zip(global_model.parameters(), task_model.parameters()):
+                    if w_global.grad is None:
+                        w_global.grad = w_local.grad
+                    else:
+                        w_global.grad += w_local.grad
+
             meta_optimizer.step()
+            meta_optimizer.zero_grad()
         
         global_model.eval()
         with torch.no_grad():
@@ -114,14 +116,14 @@ def main(args: argparse):
                 batch_count = test_idx
                 test_imgs = test_imgs.to(device, non_blocking=True)
                 test_labels = test_labels.to(device, non_blocking=True)
-                test_logits = model(test_imgs)                
+                test_logits = global_model(test_imgs)                
             
                 test_loss += criterion(test_logits, test_labels).item()
                 _, predicted = test_logits.max(1)
                 total += test_labels.size(0)
                 correct += predicted.eq(test_labels).sum().item()
                 
-        print(f"Epoch: {epoch} - MetaLoss: {metaloss.item()/train_ds.nt} - Test Loss: {test_loss/batch_count} - Test Acc: {100*correct/total}%")   
+        print(f"Epoch: {epoch} - MetaLoss: {metaloss/num_task} - Test Loss: {test_loss/batch_count} - Test Acc: {100*correct/total}%")   
         
 
 if __name__ == "__main__":
@@ -129,13 +131,13 @@ if __name__ == "__main__":
         prog="MINST MULTI TASK CLASSIFICATION"
     )
     
-    parser.add_argument("--in_lr", type=float, default=0.1,
+    parser.add_argument("--in_lr", type=float, default=0.01,
                         help="Inner learning Rate")
     parser.add_argument("--out_lr", type=float, default=0.001,
                         help="Outer learning Rate")
     parser.add_argument("--ks", type=int, default=5,
                         help="#sample in support set")
-    parser.add_argument("--kq", type=int, default=32,
+    parser.add_argument("--kq", type=int, default=5,
                         help="#sample in query set")
     parser.add_argument("--wk", type=int, default=os.cpu_count(),
                         help="#number of workers")
