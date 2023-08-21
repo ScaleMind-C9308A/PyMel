@@ -50,7 +50,7 @@ class Trainer:
                     in gpus: {gpus}")
         elif np.sum(
             np.array(
-                [isinstance(x, int) for x in gpus]
+                [not isinstance(x, int) for x in gpus]
             )
         ) > 0:
             raise ValueError(f"PyMel GPT: the elements inside gpus must be integers")
