@@ -34,7 +34,7 @@ class FSMAML(Trainer):
                  ) -> None:
         super().__init__(ds_cfg, tr_cfg, model, gpus)
         
-        os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(gpus)
+        os.environ["CUDA_VISIBLE_DEVICES"] = ",".join([str(x) for x in gpus])
         
         self.ds_cfg = ds_cfg
         self.tr_cfg = tr_cfg
