@@ -90,6 +90,7 @@ class FSMAML(Trainer):
         print(f"PyMel GPT: The experiment is deployed at {args.dist_url}")
         
         args.world_size = torch.cuda.device_count()
+        print(args.world_size)
         
         mp.spawn(self.main_worker, (args,), nprocs = args.world_size)
         
