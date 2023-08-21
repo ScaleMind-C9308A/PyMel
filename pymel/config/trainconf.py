@@ -53,27 +53,21 @@ class TrainConfig:
         if not os.path.exists(self.exp_dir):
             os.mkdir(self.exp_dir)
     
-    
     def checkpoint(self):
         return self.cp
-    
-    
+        
     def get_sv_best(self):
         return self.sv_best
-    
     
     def get_sv_last(self):
         return self.sv_last
     
-    
     def get_ext(self):
         return self.ext
-    
     
     def get_sv_dir(self):
         return self.sv_dir
 
-    
     def config_export(self):
         return {
             "checkpoint" : self.cp,
