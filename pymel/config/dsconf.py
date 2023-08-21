@@ -69,11 +69,11 @@ class DSConfig:
             "data_root_dir" : root,
             "download" : download,
             "transform" : [
-                x.__class__.__name__ for x in transform.transforms
-            ],
+                x.__class__.__name__ for x in transform.transforms 
+            ] if transform.transforms else None,
             "target_transofrm" : [
-                x.__class__.__name__ for x in target_transform.transforms
-            ],
+                x.__class__.__name__ for x in target_transform.transforms 
+            ] if target_transform.transforms else None,
             "k_shot" : k_shot,
             "k_query" : k_query,
             "n_way" : n_train_cls,
