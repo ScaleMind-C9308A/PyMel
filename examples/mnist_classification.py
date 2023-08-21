@@ -71,9 +71,7 @@ def main(args: argparse):
             
             metaloss = 0.0
             for task in data_dict:
-                # task_model = global_model.clone()
-                task_model = CNN_Mnist(input_size=(1, 28, 28), num_classes=10).to(device=device)
-                task_model.load_state_dict(global_model.state_dict())
+                task_model = copy.deepcopy(global_model)
                 task_optimizer = Adam(task_model.parameters(), lr=args.in_lr, weight_decay=1e-4)
                 
                 sp_x, sp_y, qr_x, qr_y = single_task_detach(
