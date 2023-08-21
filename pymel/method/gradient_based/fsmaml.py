@@ -1,8 +1,15 @@
 import os, sys
-from pymel.config import DSConfig, TrainConfig
 sys.path.append("/".join(os.path.dirname(__file__).split("/")[:-1]))
+from typing import *
+from random import randint
+import argparse
+from tqdm import tqdm
+import copy
+
+from pymel.config import DSConfig, TrainConfig
 from core import Trainer, opt_mapping
 from dataset.utils import single_task_detach
+
 import torch
 from torch import nn
 import torch.multiprocessing as mp
@@ -10,15 +17,13 @@ import torch.distributed as dist
 from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler
-from random import randint
-import argparse
-from tqdm import tqdm
-import copy
+
+
 
 
 class FSMAML(Trainer):
     def __init__(self, ds_cfg: DSConfig, tr_cfg: TrainConfig, 
-                 model: nn.Module = None, gpus: list[int] = ...,
+                 model: nn.Module = None, gpus: List[int] = ...,
                  meta_opt: str = None, 
                  meta_lr: float = 0.001,
                  meta_wd: float = 1e-4,
