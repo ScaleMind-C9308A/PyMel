@@ -179,22 +179,24 @@ class FSMAML(Trainer):
 
                 meta_optimizer.step()
                 meta_optimizer.zero_grad()
-            
-            global_model.eval()
-            with torch.no_grad():
-                test_loss = 0
-                correct = 0
-                total = 0
-                batch_count = 0
-                for test_idx, (test_imgs, test_labels) in enumerate(test_dl):
-                    batch_count = test_idx
-                    test_imgs = test_imgs.cuda(gpu)
-                    test_labels = test_labels.cuda(gpu)
-                    test_logits = global_model(test_imgs)                
-                
-                    test_loss += self.crit(test_logits, test_labels).item()
-                    _, predicted = test_logits.max(1)
-                    total += test_labels.size(0)
-                    correct += predicted.eq(test_labels).sum().item()
+            if args.rank == 0:
+                global_model.eval()
+                with torch.no_grad():
+                    test_loss = 0
+                    correct = 0
+                    total = 0
+                    batch_count = 0
+                    for test_idx, (test_imgs, test_labels) in enumerate(test_dl):
+                        batch_count = test_idx
+                        test_imgs = test_imgs.cuda(gpu)
+                        test_labels = test_labels.cuda(gpu)
+                        test_logits = global_model(test_imgs)                
                     
-            print(f"Epoch: {epoch} - MetaLoss: {metaloss/num_task} - Test Loss: {test_loss/batch_count} - Test Acc: {100*correct/total}%")  
+                        test_loss += self.crit(test_logits, test_labels).item()
+                        _, predicted = test_logits.max(1)
+                        total += test_labels.size(0)
+                        correct += predicted.eq(test_labels).sum().item()
+                        
+                print(f"Epoch: {epoch} - MetaLoss: {metaloss/num_task} - Test Loss: {test_loss/batch_count} - Test Acc: {100*correct/total}%")  
+    
+        dist.destroy_process_group()
