@@ -44,8 +44,8 @@ class ModelCheckPoint:
     
     def __call__(self, 
                  model: nn.Module, 
-                 loss: list[float] or Dict[str, float] = None, 
-                 acc: list[float] or Dict[str, float] = None, 
+                 loss: List[float] or Dict[str, float] = None, 
+                 acc: List[float] or Dict[str, float] = None, 
                  optimizer: torch.optim = None, 
                  epoch: int = None,
                  *args: Any, **kwds: Any) -> Any:
