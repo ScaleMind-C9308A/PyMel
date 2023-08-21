@@ -2,7 +2,7 @@ import os, sys
 from pymel.config import DSConfig, TrainConfig
 sys.path.append("/".join(os.path.dirname(__file__).split("/")[:-1]))
 from core import Trainer, opt_mapping
-from dataset.utils import maml_detach
+from dataset.utils import single_task_detach
 import torch
 from torch import nn
 import torch.multiprocessing as mp
@@ -25,9 +25,9 @@ class FSMAML(Trainer):
                  sp_opt: str = None,
                  sp_lr: float = 0.01,
                  sp_wd: float = 1e-4,
-                 meta_criterion: torch.nn.Module = nn.BCELoss(),
-                 clf_criterion: torch.nn.Module = nn.CrossEntropyLoss(),
-                 epoch: int = 100
+                 criterion: torch.nn.Module = nn.CrossEntropyLoss(),
+                 outer_epoch: int = 100,
+                 inner_epoch: int = 1
                  ) -> None:
         super().__init__(ds_cfg, tr_cfg, model, gpus)
         
@@ -53,16 +53,17 @@ class FSMAML(Trainer):
                 raise TypeError(f"PyMel GPT: {name} must be a float, \
                     but found {type(value)} instead")
         
-        for critn, crit in zip(
-            ["meta_criterion", "clf_criterion"], [meta_criterion, clf_criterion]
-        ):
-            if not isinstance(crit, torch.nn.Module):
-                raise TypeError(f"PyMel GPT: {critn} must be a float, \
-                    but found {type(crit)} instead")
+        if not isinstance(criterion, torch.nn.Module):
+            raise TypeError(f"PyMel GPT: {criterion} must be a float, \
+                but found {type(criterion)} instead")
         
-        if not isinstance(epoch, int):
-            raise TypeError(f"PyMel GPT: {epoch} must be an int, \
-                    but found {type(epoch)} instead")
+        for name, var in zip(
+            ["outer_epoch", "inner_epoch"],
+            [outer_epoch, inner_epoch]
+        ):
+            if not isinstance(var, int):
+                raise TypeError(f"PyMel GPT: {name} must be an int, \
+                        but found {type(var)} instead")
         
         self.meta_opt = meta_opt
         self.sp_opt = sp_opt
@@ -70,9 +71,9 @@ class FSMAML(Trainer):
         self.meta_wd = meta_wd
         self.sp_lr = sp_lr
         self.sp_wd = sp_wd
-        self.meta_crit = meta_criterion
-        self.clf_crit = clf_criterion
-        self.epoch
+        self.crit = criterion        
+        self.outer_epoch = outer_epoch
+        self.inner_epoch = inner_epoch
         self.method = "fsmaml"
         self.tr_cfg.folder_setup(method=self.method)
         
@@ -132,68 +133,65 @@ class FSMAML(Trainer):
             lr=self.meta_lr, weight_decay=self.meta_wd
         )
         
-        for epoch in range(self.epoch):
+        num_task = self.ds_cfg.train_ds.nt
+        for epoch in range(self.outer_epoch):
             global_model.train()
             
             for train_idx, data_dict in enumerate(train_dl):
-            
-                metaloss = 0.0                
                 
+                metaloss = 0.0
                 for task in data_dict:
-                    model=copy.deepcopy(global_model)
-                    model.train()
-                    
-                    sp_optimizer = opt_mapping[self.sp_opt](
-                        model.parameters(), 
+                    task_model = copy.deepcopy(global_model)
+                    task_optimizer = opt_mapping[self.meta_opt](
+                        task_model.parameters(), 
                         lr=self.sp_lr, weight_decay=self.sp_wd
                     )
                     
-                    sp_x, sp_y, qr_x, qr_y = maml_detach(
+                    sp_x, sp_y, qr_x, qr_y = single_task_detach(
                         batch_dict=data_dict,
                         k_shot=per_device_k_shot,
                         k_query=per_device_k_query,
                         task=task
                     )
                     
-                    sp_x = sp_x.cuda(gpu, non_blocking=True)
-                    sp_y = sp_y.cuda(gpu, non_blocking=True)
-                    sp_logits = model(sp_x)
-                    sp_loss = self.meta_crit(sp_logits[:, task], sp_y)
-                    sp_optimizer.zero_grad()
-                    sp_loss.backward()
-                    sp_optimizer.step()
+                    for in_e in range(args.inner_epochs):
+                        sp_x, sp_y = sp_x.cuda(gpu), sp_y.cuda(gpu)
+                        sp_logits = task_model(sp_x)
+                        sp_loss = self.crit(sp_logits, sp_y)
+                        task_optimizer.zero_grad()
+                        sp_loss.backward()
+                        task_optimizer.step()
                     
-                    qr_x = qr_x.cuda(gpu, non_blocking=True)
-                    qr_y = qr_y.cuda(gpu, non_blocking=True)
-                    qr_logits = model(qr_x)
-                    qr_loss = self.meta_crit(qr_logits[:, task], qr_y)
-                    metaloss += qr_loss
-                
-                meta_optimizer.zero_grad()
-                metagrads=torch.autograd.grad(
-                    metaloss, list(global_model.parameters()), allow_unused=True
-                )
-                for w,g in zip(list(global_model.parameters()), metagrads):
-                    w.grad=g 
+                    qr_x, qr_y = qr_x.cuda(gpu), qr_y.cuda(gpu)
+                    qr_logits = task_model(qr_x)
+                    qr_loss = self.crit(qr_logits, qr_y)
+                    metaloss += qr_loss.item()
+                    qr_loss.backward()            
+
+                    for w_global, w_local in zip(global_model.parameters(), task_model.parameters()):
+                        if w_global.grad is None:
+                            w_global.grad = w_local.grad
+                        else:
+                            w_global.grad += w_local.grad
+
                 meta_optimizer.step()
+                meta_optimizer.zero_grad()
             
-            if args.rank == 0:
-                global_model.eval()
-                with torch.no_grad():
-                    test_loss = 0
-                    correct = 0
-                    total = 0
-                    batch_count = 0
-                    for test_idx, (test_imgs, test_labels) in enumerate(test_dl):
-                        batch_count = test_idx
-                        test_imgs = test_imgs.cuda(gpu, non_blocking=True)
-                        test_labels = test_labels.cuda(gpu, non_blocking=True)
-                        test_logits = model(test_imgs)                
+            global_model.eval()
+            with torch.no_grad():
+                test_loss = 0
+                correct = 0
+                total = 0
+                batch_count = 0
+                for test_idx, (test_imgs, test_labels) in enumerate(test_dl):
+                    batch_count = test_idx
+                    test_imgs = test_imgs.cuda(gpu)
+                    test_labels = test_labels.cuda(gpu)
+                    test_logits = global_model(test_imgs)                
+                
+                    test_loss += self.crit(test_logits, test_labels).item()
+                    _, predicted = test_logits.max(1)
+                    total += test_labels.size(0)
+                    correct += predicted.eq(test_labels).sum().item()
                     
-                        test_loss += self.clf_crit(test_logits, test_labels).item()
-                        _, predicted = test_logits.max(1)
-                        total += test_labels.size(0)
-                        correct += predicted.eq(test_labels).sum().item()
-                        
-                print(f"Epoch: {epoch} - MetaLoss: {metaloss.item()/self.ds_cfg.train_ds.nt} - \
-                    Test Loss: {test_loss/batch_count} - Test Acc: {100*correct/total}%")  
+            print(f"Epoch: {epoch} - MetaLoss: {metaloss/num_task} - Test Loss: {test_loss/batch_count} - Test Acc: {100*correct/total}%")  
