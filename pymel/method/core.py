@@ -1,5 +1,6 @@
 import os, sys
 sys.path.append("/".join(os.path.dirname(__file__).split("/")[:-1]))
+from typing import *
 from config import DSConfig, TrainConfig
 from utils import ModelCheckPoint
 import torch
@@ -13,7 +14,7 @@ opt_mapping = {
 
 class Trainer:
     def __init__(self, ds_cfg: DSConfig, tr_cfg: TrainConfig,
-                 model: nn.Module = None, gpus: list[int] = [0]) -> None:
+                 model: nn.Module = None, gpus: List[int] = [0]) -> None:
         if not isinstance(ds_cfg, DSConfig):
             raise TypeError(f"PyMel GPT: ds_cfg must be DSConfig, \
                 but found {type(ds_cfg)} instead")
