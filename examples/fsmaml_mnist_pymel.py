@@ -9,7 +9,7 @@ from torch import nn
 
 from pymel.config import DSConfig, TrainConfig
 from pymel.base_model import CNN_Mnist
-from pymel.method.gradient_based.fsmaml import fsmaml
+from pymel.method.gradient_based import FSMAML
 
 if __name__ == "__main__":
     
@@ -45,25 +45,7 @@ if __name__ == "__main__":
         extension="pt"
     )
     
-    # trainer = FSMAML(
-    #     ds_cfg=ds_conf,
-    #     tr_cfg=tr_conf,
-    #     model=CNN_Mnist((1, 28, 28), 10),
-    #     gpus=[0],
-    #     meta_opt=meta_opt,
-    #     meta_lr=meta_lr,
-    #     meta_wd=meta_wd,
-    #     sp_opt=sp_opt,
-    #     sp_lr=sp_lr,
-    #     sp_wd=sp_wd,
-    #     criterion=nn.CrossEntropyLoss(),
-    #     outer_epoch=outer_epoch,
-    #     inner_epoch=inner_epoch
-    # )
-    
-    # trainer.train()
-    
-    fsmaml(
+    trainer = FSMAML(
         ds_cfg=ds_conf,
         tr_cfg=tr_conf,
         model=CNN_Mnist((1, 28, 28), 10),
@@ -78,3 +60,5 @@ if __name__ == "__main__":
         outer_epoch=outer_epoch,
         inner_epoch=inner_epoch
     )
+    
+    trainer.single_train()
