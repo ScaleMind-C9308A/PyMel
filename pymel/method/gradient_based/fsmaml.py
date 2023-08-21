@@ -19,8 +19,6 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler
 
 
-
-
 class FSMAML(Trainer):
     def __init__(self, ds_cfg: DSConfig, tr_cfg: TrainConfig, 
                  model: nn.Module = None, gpus: List[int] = ...,
