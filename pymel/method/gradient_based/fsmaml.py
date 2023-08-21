@@ -169,6 +169,7 @@ class FSMAML(Trainer):
             print(f"Epoch: {epoch} - MetaLoss: {metaloss/num_task} - Test Loss: {test_loss/batch_count} - Test Acc: {100*correct/total}%")  
         
     def train(self, port=randint(1000, 8000)):
+        raise NotImplementedError()
         parser = argparse.ArgumentParser()
         args = parser.parse_args()
             
