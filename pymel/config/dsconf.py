@@ -83,19 +83,15 @@ class DSConfig:
     def config_export(self):
         return self.config
     
-    @staticmethod
     def get_k_shot(self):
         return self.train_ds.ks
     
-    @staticmethod
     def get_k_query(self):
         return self.train_ds.kq
 
-    @staticmethod
     def get_wk(self):
         return self.wk
     
-    @staticmethod
     def get_pin_mem(self):
         return self.pm
 
