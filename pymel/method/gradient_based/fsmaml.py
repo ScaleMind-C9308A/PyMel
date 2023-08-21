@@ -90,7 +90,6 @@ class FSMAML(Trainer):
         print(f"PyMel GPT: The experiment is deployed at {args.dist_url}")
         
         args.world_size = torch.cuda.device_count()
-        print(args.world_size)
         
         mp.spawn(self.main_worker, (args,), nprocs = args.world_size)
         
@@ -98,11 +97,9 @@ class FSMAML(Trainer):
         print("get here")
         args.rank += gpu
 
-        os.environ["MASTER_ADDR"] = "localhost"
-        os.environ["MASTER_PORT"] = str(args.port)
         dist.init_process_group(
             backend='nccl', 
-            # init_method=args.dist_url,
+            init_method=args.dist_url,
             world_size=args.world_size, rank=args.rank)
         
         torch.cuda.set_device(gpu)
@@ -111,6 +108,8 @@ class FSMAML(Trainer):
         
         batch_size = self.ds_cfg.get_k_shot() + self.ds_cfg.get_k_query()
         assert batch_size % args.world_size == 0
+        assert self.ds_cfg.get_k_shot() % args.world_size == 0
+        assert self.ds_cfg.get_k_query() % args.world_size == 0
         
         train_sampler = DistributedSampler(self.ds_cfg.train_ds)
         test_sampler = DistributedSampler(self.ds_cfg.test_ds)
