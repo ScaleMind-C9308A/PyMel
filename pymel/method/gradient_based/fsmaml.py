@@ -93,6 +93,7 @@ class FSMAML(Trainer):
         mp.spawn(self.main_worker, (args,), args.ngpus)
         
     def main_worker(self, gpu, args):
+        print("get here")
         args.rank += gpu
     
         dist.init_process_group(
