@@ -68,18 +68,17 @@ class DSConfig:
             "dataset" : self.ds_name,
             "data_root_dir" : root,
             "download" : download,
-            "transform" : [
-                x.__class__.__name__ for x in transform.transforms 
-            ] if transform.transforms is not None else None,
-            "target_transofrm" : [
-                x.__class__.__name__ for x in target_transform.transforms 
-            ] if target_transform.transforms is not None else None,
             "k_shot" : k_shot,
             "k_query" : k_query,
             "n_way" : n_train_cls,
             "num_worker" : num_worker,
             "pin_memory" : pin_memory
         }
+        
+        if transform.transforms is not None:
+            self.config['transform'] = [x.__class__.__name__ for x in transform.transforms]
+        if target_transform.transforms is not None:
+            self.config['target_transofrm'] = [x.__class__.__name__ for x in target_transform.transforms]
     
     def config_export(self):
         return self.config
