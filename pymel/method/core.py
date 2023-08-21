@@ -15,17 +15,18 @@ opt_mapping = {
 class Trainer:
     def __init__(self, ds_cfg: DSConfig, tr_cfg: TrainConfig,
                  model: nn.Module = None, gpus: List[int] = [0]) -> None:
-        if not isinstance(ds_cfg, DSConfig):
-            raise TypeError(f"PyMel GPT: ds_cfg must be DSConfig, \
-                but found {type(ds_cfg)} instead")
-        else:
-            self.ds_cfg = ds_cfg
+        # if not isinstance(ds_cfg, DSConfig):
+        #     raise TypeError(f"PyMel GPT: ds_cfg must be DSConfig, but found {type(ds_cfg)} instead")
+        # else:
+        #     self.ds_cfg = ds_cfg
             
-        if not isinstance(tr_cfg, TrainConfig):
-            raise TypeError(f"PyMel GPT: tr_cfg must be TrainConfig, \
-                but found {type(tr_cfg)} instead")
-        else:
-            self.tr_cfg = tr_cfg
+        # if not isinstance(tr_cfg, TrainConfig):
+        #     raise TypeError(f"PyMel GPT: tr_cfg must be TrainConfig, but found {type(tr_cfg)} instead")
+        # else:
+        #     self.tr_cfg = tr_cfg
+        
+        self.ds_cfg = ds_cfg
+        self.tr_cfg = tr_cfg
         
         if self.tr_cfg.checkpoint():
             self.checker = ModelCheckPoint(
