@@ -75,9 +75,9 @@ class DSConfig:
             "pin_memory" : pin_memory
         }
         
-        if transform.transforms is not None:
+        if transform is not None:
             self.config['transform'] = [x.__class__.__name__ for x in transform.transforms]
-        if target_transform.transforms is not None:
+        if target_transform is not None:
             self.config['target_transofrm'] = [x.__class__.__name__ for x in target_transform.transforms]
     
     def config_export(self):
