@@ -42,7 +42,7 @@ class TrainConfig:
             self.sv_last = save_last
             self.ext = extension
             
-    @staticmethod
+    
     def folder_setup(self, method):
         self.method_dir = self.sv_dir + f"/{method}"
         if not os.path.exists(self.method_dir):
@@ -53,27 +53,27 @@ class TrainConfig:
         if not os.path.exists(self.exp_dir):
             os.mkdir(self.exp_dir)
     
-    @staticmethod
+    
     def checkpoint(self):
         return self.cp
     
-    @staticmethod
+    
     def get_sv_best(self):
         return self.sv_best
     
-    @staticmethod
+    
     def get_sv_last(self):
         return self.sv_last
     
-    @staticmethod
+    
     def get_ext(self):
         return self.ext
     
-    @staticmethod
+    
     def get_sv_dir(self):
         return self.sv_dir
 
-    @staticmethod
+    
     def config_export(self):
         return {
             "checkpoint" : self.cp,
