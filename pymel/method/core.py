@@ -1,7 +1,7 @@
 import os, sys
 sys.path.append("/".join(os.path.dirname(__file__).split("/")[:-1]))
 from config import DSConfig, TrainConfig
-from .utils import ModelCheckPoint
+from utils import ModelCheckPoint
 import torch
 from torch import nn
 from torch.optim import *
