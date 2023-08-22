@@ -7,9 +7,10 @@ import random
 from torchvision import transforms
 from torch import nn
 
-from pymel.config import DSConfig, TrainConfig
+from pymel.config import DSConfig, TrainConfig, DSConfigV2
 from pymel.base_model import CNN_Mnist
 from pymel.method.gradient_based import FSMAML
+from pymel.dataset import MamlKMnist
 
 if __name__ == "__main__":
     
@@ -27,14 +28,25 @@ if __name__ == "__main__":
         transforms.Normalize((0.1307,), (0.3081,))
     ])
     
-    ds_conf = DSConfig(
-        dataset="kmnist",
-        download=True,
+    train_ds = MamlKMnist(
+        train=True, 
         transform=transform,
+        download=True,
         k_shot=k_shot,
         k_query=k_query,
-        num_worker=os.cpu_count(),
-        pin_memory=True
+        maml=True
+    )
+    
+    test_ds = MamlKMnist(
+        train=False,
+        transform=transform,
+        download=True,
+        maml=False
+    )
+    
+    ds_conf = DSConfigV2(
+        train_dataset=train_ds,
+        test_dataset=test_ds
     )
     
     tr_conf = TrainConfig(
