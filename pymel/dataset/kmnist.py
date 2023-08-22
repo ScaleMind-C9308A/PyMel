@@ -1,5 +1,5 @@
 import os, sys
-from mnist import MamlMnist
+from .mnist import MamlMnist
 
 
 class MamlKMnist(MamlMnist):
