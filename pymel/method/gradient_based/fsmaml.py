@@ -81,7 +81,13 @@ class FSMAML(Trainer):
         self.tr_cfg.folder_setup(method=self.method)
     
     def single_train(self):
-        batch_size = self.ds_cfg.get_k_shot() + self.ds_cfg.get_k_query()
+        
+        dsn = self.ds_cfg.config["dataset"]
+        ks = self.ds_cfg.get_k_shot()
+        kq = self.ds_cfg.get_k_query()
+        print(f"Dataset: {dsn} - ks: {ks} - kq: {kq}")
+        
+        batch_size = ks + kq
         train_dl = DataLoader(
             dataset=self.ds_cfg.train_ds, 
             batch_size=batch_size, 
