@@ -43,13 +43,21 @@ class TrainConfig:
             self.ext = extension
             
     
-    def folder_setup(self, method):
+    def folder_setup(self, method, dataset, k_shot, k_query):
         self.method_dir = self.sv_dir + f"/{method}"
         if not os.path.exists(self.method_dir):
             os.mkdir(self.method_dir)
-        sub_dirs = os.listdir(self.method_dir)
         
-        self.exp_dir = self.method_dir + f"/ext{len(sub_dirs)}"
+        self.data_dir = self.method_dir + f"/{dataset}"
+        if not os.path.exists(self.data_dir):
+            os.mkdir(self.data_dir)
+        
+        self.setting_dir = self.data_dir + f"/ks{k_shot}_kq{k_query}"
+        if not os.path.exists(self.setting_dir):
+            os.mkdir(self.setting_dir)
+        sub_dirs = os.listdir(self.setting_dir)
+        
+        self.exp_dir = self.setting_dir + f"/ext{len(sub_dirs)}"
         if not os.path.exists(self.exp_dir):
             os.mkdir(self.exp_dir)
     
