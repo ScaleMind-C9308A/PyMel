@@ -7,7 +7,7 @@ import random
 from torchvision import transforms
 from torch import nn
 
-from pymel.config import DSConfig, TrainConfig, DSConfigV2
+from pymel.config import TrainConfig, DSConfigV2
 from pymel.base_model import CNN_Mnist
 from pymel.method.gradient_based import FSMAML
 from pymel.dataset import MamlKMnist
