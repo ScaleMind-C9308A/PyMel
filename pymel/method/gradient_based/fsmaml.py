@@ -81,8 +81,8 @@ class FSMAML(Trainer):
         self.tr_cfg.folder_setup(
             method=self.method, 
             dataset=self.ds_cfg.config["dataset"],
-            k_shot=self.ds_cfg.get_k_shot,
-            k_query=self.ds_cfg.get_k_query
+            k_shot=self.ds_cfg.get_k_shot(),
+            k_query=self.ds_cfg.get_k_query()
         )
     
     def single_train(self):
