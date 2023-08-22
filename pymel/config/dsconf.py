@@ -2,7 +2,6 @@ import os, sys
 sys.path.append("/".join(os.path.dirname(__file__).split("/")[:-1]))
 from typing import *
 from dataset import *
-from torch.utils.data import DataLoader
 
 ds_map = {
     "mnist" : MamlMnist,
@@ -95,10 +94,3 @@ class DSConfig:
     
     def get_pin_mem(self):
         return self.pm
-
-if __name__ == "__main__":
-    config = DSConfig(
-        dataset="mnist"
-    )
-    
-    print(config.train_ds)
