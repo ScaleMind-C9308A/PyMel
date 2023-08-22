@@ -5,7 +5,8 @@ from dataset import *
 
 ds_map = {
     "mnist" : MamlMnist,
-    "kmnist" : MamlKMnist
+    "kmnist" : MamlKMnist,
+    "fmnist" : MamlFMnist
 }
 
 class DSConfig:
