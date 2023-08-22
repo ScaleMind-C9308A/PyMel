@@ -78,14 +78,19 @@ class FSMAML(Trainer):
         self.outer_epoch = outer_epoch
         self.inner_epoch = inner_epoch
         self.method = "fsmaml"
-        self.tr_cfg.folder_setup(method=self.method)
+        self.tr_cfg.folder_setup(
+            method=self.method, 
+            dataset=self.ds_cfg.config["dataset"],
+            k_shot=self.ds_cfg.get_k_shot,
+            k_query=self.ds_cfg.get_k_query
+        )
     
     def single_train(self):
         
         dsn = self.ds_cfg.config["dataset"]
         ks = self.ds_cfg.get_k_shot()
         kq = self.ds_cfg.get_k_query()
-        print(f"Dataset: {dsn} - ks: {ks} - kq: {kq}")
+        print(f"Method: {self.method} - Dataset: {dsn} - ks: {ks} - kq: {kq}")
         
         batch_size = ks + kq
         train_dl = DataLoader(
