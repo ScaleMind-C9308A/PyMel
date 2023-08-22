@@ -1,3 +1,3 @@
 from .dsconf import DSConfig
 from .trainconf import TrainConfig
-from .dsconfigv2 import DSConfigV2
+from .dsconfv2 import DSConfigV2
