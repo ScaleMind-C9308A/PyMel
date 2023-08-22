@@ -5,7 +5,8 @@ from dataset import *
 from torch.utils.data import DataLoader
 
 ds_map = {
-    "mnist" : MamlMnist
+    "mnist" : MamlMnist,
+    "kmnist" : MamlKMnist
 }
 
 class DSConfig:
