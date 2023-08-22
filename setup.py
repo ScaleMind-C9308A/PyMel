@@ -32,5 +32,5 @@ setup(
     ],
     packages=["pymel"],
     include_package_data=True,
-    install_requires=["numpy", "tqdm"]
+    install_requires=["numpy", "tqdm", "pyarrow", "fastparquet"]
 )
