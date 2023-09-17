@@ -39,8 +39,8 @@ class MamlCifar10(CIFAR10, MUL_PROC_MAML_DATASET):
         }        
 
         for idx, _cls in enumerate(self.targets):
-            self.dict_ds[_cls.item()].append(
-                Image.fromarray(self.data[idx].numpy(), mode="L")
+            self.dict_ds[_cls].append(
+                Image.fromarray(self.data[idx], mode="RGB")
             )
         
         self.max_sample = max([len(self.dict_ds[_cls]) for _cls in self.dict_ds])
